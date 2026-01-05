@@ -2,7 +2,6 @@ const Scrollbar = window.Scrollbar;
 Scrollbar.use(window.OverscrollPlugin);
 
 const scrollContainer = document.querySelector('.js-scroll-list');
-const content = document.querySelector('.js-scroll-content');
 const items = document.querySelectorAll('.scroll-list__item');
 
 const scrollbar = Scrollbar.init(scrollContainer, {
@@ -12,30 +11,38 @@ const scrollbar = Scrollbar.init(scrollContainer, {
   }
 });
 
-// estado inicial
-items[0].classList.add('item-focus');
-if (items[1]) items[1].classList.add('item-next');
-
-scrollbar.addListener(({ offset }) => {
-  const scrollTop = offset.y;
+// Atualiza estados de visibilidade
+function updateItems() {
+  const scrollTop = scrollbar.offset.y;
   const containerHeight = scrollContainer.clientHeight;
+  const centerLine = scrollTop + containerHeight / 2;
 
-  items.forEach((item, index) => {
+  items.forEach((item) => {
     const itemTop = item.offsetTop;
     const itemHeight = item.offsetHeight;
+    const itemCenter = itemTop + itemHeight / 2;
 
-    item.classList.remove('item-focus', 'item-next');
+    const distance = Math.abs(centerLine - itemCenter);
 
-    // Item em foco
-    if (
-      itemTop < scrollTop + containerHeight / 2 &&
-      itemTop + itemHeight > scrollTop + containerHeight / 2
-    ) {
-      item.classList.add('item-focus');
+    // controla quantos itens aparecem (≈ 3 visíveis)
+    const visibilityRange = itemHeight * 1.5;
 
-      if (items[index + 1]) {
-        items[index + 1].classList.add('item-next');
-      }
+    item.classList.remove('is-visible', 'is-active');
+
+    // item aparece
+    if (distance < visibilityRange) {
+      item.classList.add('is-visible');
+    }
+
+    // item em foco (centro)
+    if (distance < itemHeight / 2) {
+      item.classList.add('is-active');
     }
   });
-});
+}
+
+// Listener de scroll
+scrollbar.addListener(updateItems);
+
+// Estado inicial
+updateItems();
