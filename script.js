@@ -1,99 +1,49 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const items = document.querySelectorAll('.scroll-list__item');
 
-body {
-  background: #0f0f0f;
-  color: #ffffff;
-  min-height: 100vh;
-}
+  // Função que ativa visibilidade usando scroll nativo
+  function nativeScrollReveal() {
+    const viewportCenter = window.innerHeight / 2;
 
-/* Centralização */
-.wrapper {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    items.forEach(item => {
+      const rect = item.getBoundingClientRect();
+      const itemCenter = rect.top + rect.height / 2;
+      const distance = Math.abs(viewportCenter - itemCenter);
 
-/* Container do scroll */
-.scroll-list {
-  width: 400px;
-  height: 80vh;
-  background: #151515;
-  overflow: hidden;
-  border-radius: 12px;
-}
+      item.classList.remove('is-visible', 'is-active');
 
-/* Conteúdo */
-.scroll-list__wrp {
-  padding: 40px 20px;
-}
+      if (distance < rect.height * 1.5) {
+        item.classList.add('is-visible');
+      }
 
-/* Item */
-.scroll-list__item {
-  height: 120px;
-  margin-bottom: 30px;
-  background: #222;
-  border-radius: 10px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 22px;
-
-  opacity: 0;
-  transform: translateY(40px) scale(0.95);
-
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s ease,
-    background 0.3s ease,
-    color 0.3s ease;
-}
-
-/* Espaço final */
-.scroll-list__item:last-child {
-  margin-bottom: 160px;
-}
-
-/* Visível */
-.scroll-list__item.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Item central */
-.scroll-list__item.is-active {
-  background: #ffffff;
-  color: #000000;
-  transform: translateY(0) scale(1.08);
-}
-
-/* Responsivo */
-@media (max-width: 768px) {
-  .scroll-list {
-    width: 100%;
-    height: 100vh;
-    border-radius: 0;
+      if (distance < rect.height / 2) {
+        item.classList.add('is-active');
+      }
+    });
   }
 
-  .scroll-list__wrp {
-    padding: 20px 15px;
+  // Tenta usar Smooth Scrollbar
+  if (window.Scrollbar) {
+    try {
+      Scrollbar.use(window.OverscrollPlugin);
+
+      const scrollContainer = document.querySelector('.js-scroll-list');
+
+      const scrollbar = Scrollbar.init(scrollContainer, {
+        damping: 0.08,
+        plugins: { overscroll: true }
+      });
+
+      scrollbar.addListener(nativeScrollReveal);
+      nativeScrollReveal();
+      return;
+    } catch (e) {
+      console.warn('Fallback para scroll nativo');
+    }
   }
 
-  .scroll-list__item {
-    height: 90px;
-    font-size: 18px;
-    margin-bottom: 20px;
-  }
-
-  .scroll-list__item:last-child {
-    margin-bottom: 60px;
-  }
-}
+  // Fallback total (GARANTIDO)
+  items.forEach(item => item.classList.add('is-visible'));
+  window.addEventListener('scroll', nativeScrollReveal);
+  nativeScrollReveal();
+});
